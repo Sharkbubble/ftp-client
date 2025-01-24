@@ -11,8 +11,10 @@
 #define BOOST_TEST_MODULE ftp_client_test
 #include <boost/test/unit_test.hpp>
 #include <iostream>
+#include <string>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 #include <wait.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -38,14 +40,25 @@ using namespace std;
 class FTPClientTestFixture {
 	private:
 		pid_t serverPID; // Remembers ftpserver process ID
+		
 	public:
 		char* testHostIP;
+		string port_number = "5";
 		FTPClientTestFixture() {
-			char *args[] = {const_cast<char*>("ftpserver"), const_cast<char*>("3030"), 0};
+			srand(time(0));
+
+			int random_number = rand()%1000 + 5000;
+
+			port_number += to_string(random_number);
+
+			char *args[] = {const_cast<char*>("ftpserver"), port_number.data(), 0};
+
 			char *env[] = {0};
 			testHostIP = getTestHostIPAddress();
 			serverPID = -1;
-			
+		
+			system("pkill -9 -f ftpserver");
+			sleep(1);	
 			serverPID = fork(); // Creates a child process
 			if(serverPID == 0) {
 				// Inside the child process.
@@ -67,8 +80,9 @@ class FTPClientTestFixture {
 				// sending signals to the server process.
 				cout<<"Stopping FTP Server (PID: "<<serverPID<<")"<<endl;
 				kill(serverPID, SIGTERM); // Sends terminate signal to ftpserver process
-				sleep(2);
+				sleep(1);
 				kill(serverPID, SIGKILL); // Sends kill signal to ftpserver process
+				sleep(1);
 			}
 		}
 };
@@ -85,7 +99,7 @@ BOOST_AUTO_TEST_CASE(ftp_client_connection) {
 	 * Test connecToServer() function.
 	 */
 	int socketDescriptor = -1;
-	connectToServer(socketDescriptor, testHostIP, 3030);
+	connectToServer(socketDescriptor, testHostIP, stoi(port_number));
 	BOOST_CHECK_MESSAGE(socketDescriptor != -1 &&
 						isTestSocketClosed(socketDescriptor) == false, "TEST: connectToServer()");
 	char response[FTP_RESPONSE_MAX_LENGTH];
@@ -93,14 +107,14 @@ BOOST_AUTO_TEST_CASE(ftp_client_connection) {
 	int count = receiveFromTestServer(socketDescriptor, response, FTP_RESPONSE_MAX_LENGTH);
 	sleep(1);
 	disconnectFromTestServer(socketDescriptor);
-	
+	sleep(1);
 
 	/*
 	 * Test disconnectFromServer() function.
 	 */
 	sleep(1);
-	connectToTestServer(socketDescriptor, testHostIP, 3030);
-	
+	connectToTestServer(socketDescriptor, testHostIP, stoi(port_number));
+	sleep(1);
 	BOOST_REQUIRE(socketDescriptor != -1 &&
 						isTestSocketClosed(socketDescriptor) == false);
 	memset(response, 0, FTP_RESPONSE_MAX_LENGTH);
@@ -108,29 +122,32 @@ BOOST_AUTO_TEST_CASE(ftp_client_connection) {
 	sleep(1);
 	disconnectFromServer(socketDescriptor);
 	BOOST_CHECK_MESSAGE(socketDescriptor == -1, "TEST: disconnectFromServer()");
-	
+	if (socketDescriptor == -1 ){
+		disconnectFromTestServer(socketDescriptor);
+	}
+	sleep(1);
 	
 	/*
 	 * Test receiveFromServer() function.
 	 */
-	connectToTestServer(socketDescriptor, testHostIP, 3030);	
+	connectToTestServer(socketDescriptor, testHostIP, stoi(port_number));	
 	BOOST_REQUIRE(socketDescriptor != -1 &&
 						isTestSocketClosed(socketDescriptor) == false);
 	
 	memset(response, 0, FTP_RESPONSE_MAX_LENGTH);
 	count = -1;
 	count = receiveFromServer(socketDescriptor, response, FTP_RESPONSE_MAX_LENGTH);
-	sleep(1);
 	BOOST_CHECK_MESSAGE(count==19 &&
 						 strncmp(response, CONNECTED_RESPONSE, count-1)==0,
 						 "TEST: receiveFromServer() - connected");
-
+	sleep(1);
 
 	/*
 	 * Test sendToServer() function.
 	 */
 	int sendCount= -1;
 	sendCount = sendToServer(socketDescriptor, "Hello", 5 );
+	sleep(1);
 	memset(response, 0, FTP_RESPONSE_MAX_LENGTH);
 	count = -1;
 	count = receiveFromServer(socketDescriptor, response, FTP_RESPONSE_MAX_LENGTH);
@@ -139,7 +156,7 @@ BOOST_AUTO_TEST_CASE(ftp_client_connection) {
 						"TEST: sendToServer() - unsupported command response");
 
 	disconnectFromTestServer(socketDescriptor);
-	
+	sleep(1);
 }
 
 /**
@@ -151,12 +168,12 @@ BOOST_AUTO_TEST_CASE(ftp_client_session) {
 	 */
 	ClientFtpSession clientFtpSession;
 		
-	startClientFTPSession(testHostIP, 3030, clientFtpSession);
+	startClientFTPSession(testHostIP, stoi(port_number), clientFtpSession);
 	
 	BOOST_CHECK_MESSAGE(clientFtpSession.controlSocket > 0 &&
 						isTestSocketClosed(clientFtpSession.controlSocket) == false, "TEST: startClientFTPSession()");
 
-	
+	sleep(1);
 	
 	int sendCount= -1;
 	sendCount = sendToServer(clientFtpSession.controlSocket, "Hello", 5 );
@@ -173,20 +190,29 @@ BOOST_AUTO_TEST_CASE(ftp_client_session) {
 	 * Test stopClientFTPSession() function.
 	 */
 	stopClientFTPSession(clientFtpSession);
-	
+	sleep(1);
 	BOOST_CHECK_MESSAGE(clientFtpSession.controlSocket  == -1 &&
 						clientFtpSession.dataSocket  == -1 &&
 						clientFtpSession.isUserAuthenticated  == false &&
 						clientFtpSession.isLoggedIn  == false,
 						"TEST: stopClientFTPSession()");
 
+	if (clientFtpSession.controlSocket  != -1 ||
+						clientFtpSession.dataSocket  != -1 ||
+						clientFtpSession.isUserAuthenticated  != false ||
+						clientFtpSession.isLoggedIn  != false ) {
+							stopClientTestFTPSession(clientFtpSession);
+	}
+	sleep(1);
+
 }
 
 BOOST_AUTO_TEST_CASE(ftp_client_command) {
 	
 	ClientFtpSession clientFtpSession;
-	startClientTestFTPSession(testHostIP, 3030, clientFtpSession);
-
+	sleep(1);
+	startClientTestFTPSession(testHostIP, stoi(port_number), clientFtpSession);
+	sleep(1);
 	/*
 	 * Test handleFtpRequest() function with invalid username.
 	 */
@@ -224,10 +250,11 @@ BOOST_AUTO_TEST_CASE(ftp_client_command) {
 						strcmp(response, QUIT_RESPONSE) == 0, 
 						"TEST: handleFtpRequest() - quit");
 
-	
+	sleep(1);
 	stopClientTestFTPSession(clientFtpSession);
-	startClientTestFTPSession(testHostIP, 3030, clientFtpSession);
-	
+	sleep(1);
+	startClientTestFTPSession(testHostIP, stoi(port_number), clientFtpSession);
+	sleep(1);
 	/*
 	 * Test handleCommandUser() function.
 	 */
@@ -256,9 +283,10 @@ BOOST_AUTO_TEST_CASE(ftp_client_command) {
 	BOOST_CHECK_MESSAGE(serverResponse.count == 1 &&
 						strcmp(serverResponse.responses[0].c_str(), QUIT_RESPONSE) == 0,
 						"TEST: handleCommandQuit() - quit");
-
+	sleep(1);
 	stopClientTestFTPSession(clientFtpSession);
-	startClientTestFTPSession(testHostIP, 3030, clientFtpSession);
+	sleep(1);
+	startClientTestFTPSession(testHostIP, stoi(port_number), clientFtpSession);
 
 	/*
 	 * Test interpretAndHandleUserCommand() function
@@ -296,7 +324,7 @@ BOOST_AUTO_TEST_CASE(ftp_client_command) {
 
 	ClientFtpSession clientFtpSession;
 	ServerResponse serverResponse;
-	startClientTestFTPSession(testHostIP, 3030, clientFtpSession);
+	startClientTestFTPSession(testHostIP, stoi(port_number), clientFtpSession);
 	
 	
 	string username= "csci460";
@@ -670,7 +698,7 @@ BOOST_AUTO_TEST_CASE(ftp_client_command_interpret_and_handle) {
 	ClientFtpSession clientFtpSession;
 	ServerResponse serverResponse;
 
-	startClientFTPSession(testHostIP, 3030, clientFtpSession);
+	startClientFTPSession(testHostIP, stoi(port_number), clientFtpSession);
 	BOOST_CHECK_MESSAGE(clientFtpSession.controlSocket  > 0 &&
 						clientFtpSession.dataSocket  == -1 &&
 						clientFtpSession.isUserAuthenticated  == false &&

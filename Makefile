@@ -94,8 +94,6 @@ ${BUILDS}/ftp_client_command.o: ${SOURCES}/ftp_client_command.cpp \
 	${CC} ${WFLAG} ${DFLAG} ${CFLAG} -I${INCLUDES} -o ${BUILDS}/ftp_client_command.o ${SOURCES}/ftp_client_command.cpp
 
 
-
-ifdef instructor
 ${TESTS}/${BUILDS}/ftp_client_test.o: ${TESTS}/${SOURCES}/ftp_client_test.cpp \
 			${TESTS}/${INCLUDES}/ftp_client_test_net_util.h \
 			${TESTS}/${INCLUDES}/ftp_client_test_connection.h \
@@ -107,6 +105,8 @@ ${TESTS}/${BUILDS}/ftp_client_test.o: ${TESTS}/${SOURCES}/ftp_client_test.cpp \
 	${CC} ${WFLAG} ${CFLAG} -I${INCLUDES} -I${TESTS}/${INCLUDES} -o ${TESTS}/${BUILDS}/ftp_client_test.o \
 		${TESTS}/${SOURCES}/ftp_client_test.cpp
 
+
+ifdef instructor
 
 ${TESTS}/${BUILDS}/ftp_client_test_net_util.o: ${TESTS}/${SOURCES}/ftp_client_test_net_util.cpp \
 	${TESTS}/${INCLUDES}/ftp_client_test_net_util.h

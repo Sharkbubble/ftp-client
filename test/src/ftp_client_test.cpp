@@ -1,8 +1,8 @@
 /**
  * @file ftp_client_test.cpp
  * @author Humayun Kabir, Instructor, CSCI 460, VIU
- * @version 1.0.0
- * @date June 24, 2020
+ * @version 1.0.2
+ * @date January 23, 2025
  *
  */
 

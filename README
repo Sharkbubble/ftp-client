@@ -1,38 +1,60 @@
-# Application Name 
+# FTP CLient
 
-General descriptions of the application go here.
+FTP is a client-server protocol to transfer files to or from the servers. An FTP client sends FTP request messages to an FTP server. FTP server interprets the request message, takes appropriate action, and sends back response message to the client.
 
-
+Here implemented is the client-side of FTP.
 
 
 ## Technologies
+This application has been developed using C programming language. CMake utility is necessary
+to build as well as to run the unit test of this application.
 
-The descriptions of the technologies that are used in this application go here. It includes dependencies or pre-requisites.
-
-
+To perform unit test of this application GCC compiler must have CMake and CTest. This application has been tested on Debian 4.9 (Linux) with 
+GCC 6.3.0.
 
 
 ## Build, Run, Test, Installation, and Uninstallation
 
-Instructions on how to build, run, test, install, and uninstall the application go here.
+Type following at the command prompt to clean previously built artefacts of the assignment:
+make clean
+
+Type following at the command prompt to build the application from your own source code:
+make
+
+Type the following command to run the example server provided
+make run-example-server
+
+Type the following to run the client you made and connect to the server 
+make run-client
+
+From here you are free to use the FTP protocol in any way desired.
 
 
+To test the full program program type:
+make test
 
 
 ## Usage
 
-Instructions on how to run the application go here.
-
-
+This program is designed to perform various FTP operations using the main function, which interacts with the FTP server based on user input. The program includes functions for basic FTP tasks such as connecting to the server, uploading and downloading files, listing directory contents, and moving between them.
 
 
 ## Contributors
 
-List of the contributors goes here.
-
-
+Developer: Vladislav Mazur, 658 453 550, Section N01, CSCI 460, VIU.
+Specification: Dr. Humayun Kabir, Instructor, CSCI 261, Spring 2024, VIU.
 
 
 ## License
+This is a free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-Terms and conditions or the types of licenses granted to use this application go here.
+This software is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this software. If not, see <https://www.gnu.org/licenses/>.

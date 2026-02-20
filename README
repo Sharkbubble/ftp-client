@@ -1,4 +1,4 @@
-# FTP CLient
+# FTP Client
 
 FTP is a client-server protocol to transfer files to or from the servers. An FTP client sends FTP request messages to an FTP server. FTP server interprets the request message, takes appropriate action, and sends back response message to the client.
 
@@ -42,7 +42,7 @@ This program is designed to perform various FTP operations using the main functi
 ## Contributors
 
 Developer: Vladislav Mazur, 658 453 550, Section N01, CSCI 460, VIU.
-Specification: Dr. Humayun Kabir, Instructor, CSCI 261, Spring 2024, VIU.
+Specification: Dr. Humayun Kabir, Instructor, CSCI 261, Spring 2025, VIU.
 
 
 ## License
